@@ -1,0 +1,36 @@
+%%
+clc;clear all;close all;
+addpath('./ompbox10');
+data = load('DataBase.mat');
+DataBase = data.DataBase;
+param.sparsity = 50;
+%% 数据初始化
+sparsity = param.sparsity;
+D = normc(DataBase.training_feats);
+Y = DataBase.testing_feats;
+D_label = DataBase.H_train;
+Y_label = DataBase.H_test;
+
+tic
+DtX = D' * Y;
+G = D' * D;
+alpha = omp(DtX, G, sparsity);
+%l = size(alpha)
+
+error_number = 0;
+number_class = 38;%总共38类
+for i = 1 : size(Y, 2)
+    Yi = Y(:, i);
+    alphai = alpha(:, i);%与当前样本对应的参数
+    
+    alphai_m = repmat(alphai, 1, number_class);%为了方便矩阵运算，将当前样本对应的参数扩展
+    Yi_m = repmat(Yi, 1, number_class);
+    e_m = Yi_m - D .* * alphai_m;
+    
+    res = zeros(number_class);%初始化res
+    for j = 1 : number_class
+        res(j) = norm(Yi_m, 2);
+    end
+    
+end
+toc
